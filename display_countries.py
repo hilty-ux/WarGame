@@ -1,7 +1,7 @@
 import pygame as pg
 
 
-class WesternEurope:
+class France:
 
     def __init__(self, screen, screen_width, screen_height):
         self.screen, self.width, self.height = screen, screen_width, screen_height
@@ -40,10 +40,10 @@ class WesternEurope:
 
         self.current_tab = 0
 
-        self.level_workers_housing = 9
-        self.level_mines = 10
-        self.level_fields = 5
-        self.level_sawmill = 8
+        self.level_workers_housing = 1
+        self.level_mines = 0
+        self.level_fields = 0
+        self.level_sawmill = 1
 
         # tab infrastructures :
 
@@ -165,12 +165,20 @@ class WesternEurope:
 
         if prod["Housings"][0]:
             self.upgrading[0] = self.upgrading_font.render(f"Upgrading: {prod['Housings'][1]} turn(s) left.", True, (255, 255, 255))
+        else:
+            self.upgrading[0] = self.upgrading_font.render(f"Upgrading: None", True, (255, 255, 255))
         if prod["Mines"][0]:
             self.upgrading[1] = self.upgrading_font.render(f"Upgrading: {prod['Mines'][1]} turn(s) left.", True, (255, 255, 255))
+        else:
+            self.upgrading[1] = self.upgrading_font.render(f"Upgrading: None", True, (255, 255, 255))
         if prod["Fields"][0]:
             self.upgrading[2] = self.upgrading_font.render(f"Upgrading: {prod['Fields'][1]} turn(s) left.", True, (255, 255, 255))
+        else:
+            self.upgrading[2] = self.upgrading_font.render(f"Upgrading: None", True, (255, 255, 255))
         if prod["Sawmill"][0]:
             self.upgrading[3] = self.upgrading_font.render(f"Upgrading: {prod['Sawmill'][1]} turn(s) left.", True, (255, 255, 255))
+        else:
+            self.upgrading[3] = self.upgrading_font.render(f"Upgrading: None", True, (255, 255, 255))
 
         self.upgrading_rect = [i.get_rect() for i in self.upgrading]
         for i in range(4):

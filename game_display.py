@@ -1,6 +1,7 @@
 import pygame as pg
 import popup as pu
 import display_countries as dc
+import map_display as md
 
 
 class MainDisplay:
@@ -15,12 +16,13 @@ class MainDisplay:
 
         self.resources_bar = ResourcesBar(screen, screen_width, screen_height)
         self.turn_options = TurnOptions(screen, screen_width, screen_height)
+        self.map_display = md.MainMap(screen, screen_width, screen_height)
 
-        self.display_west_eu = dc.WesternEurope(screen, screen_width, screen_height)
-        self.west_eu_surf = pg.Surface((300, 300))
-        self.west_eu_rect = self.west_eu_surf.get_rect()
-        self.west_eu_surf.fill((255, 0, 0))
-        self.west_eu_rect.center = self.width // 2, self.height // 2
+        self.france = dc.France(screen, screen_width, screen_height)
+        self.france_surf = pg.Surface((300, 300))
+        self.france_rect = self.france_surf.get_rect()
+        self.france_surf.fill((255, 0, 0))
+        self.france_rect.center = self.width // 2, self.height // 2
 
         self.player_gold = 0
         self.player_iron = 0
@@ -47,11 +49,13 @@ class MainDisplay:
 
         self.screen.fill((255, 255, 255))
 
-        if self.watching_country:
-            if self.country_watched == "west eu":
-                self.display_west_eu.update(prod_w_eu)
+        """if self.watching_country:
+            if self.country_watched == "france":
+                self.france.update(prod_w_eu)
         else:
-            self.screen.blit(self.west_eu_surf, self.west_eu_rect)
+            self.map_display.update()
+            self.screen.blit(self.france_surf, self.france_rect)"""
+        self.map_display.update()
         self.turn_options.update(current_turn)
 
         self.resources_bar.update(self.player_gold, self.player_iron,
@@ -146,8 +150,6 @@ class ResourcesBar:
             self.pop_up_wood.update_(mouse_coo)
         if self.resources_rect[5].collidepoint(mouse_coo):
             self.pop_up_land.update_(mouse_coo)
-
-
 
 
 class TurnOptions:
