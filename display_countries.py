@@ -11,7 +11,7 @@ class France:
         self.main_surf.fill((110, 110, 255))
 
         self.font_title = pg.font.Font("ressources/Fonts/f014015d.woff", 75)
-        self.title = self.font_title.render("Western Europe", True, (255, 255, 255))
+        self.title = self.font_title.render("France", True, (255, 255, 255))
         self.title_rect = self.title.get_rect()
         self.title_rect.left, self.title_rect.top = 25, 25
         self.main_surf.blit(self.title, self.title_rect)

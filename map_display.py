@@ -89,6 +89,10 @@ class MainMap:
             self.neon_bot_right[i].rect.collidepoint(*self.pos) and self.neon_bot_right[i].mask.get_at(
                 self.all_pos_bot_right[i]) for i in range(len(self.neon_bot_right))]
 
+        self.condition_france = self.touching_top_right[6]
+        self.condition_alaska = self.touching_top_right[0]
+        self.condition_canada = self.touching_top_right[2]
+
     def update(self):
 
         self.pos = pg.mouse.get_pos()
@@ -130,6 +134,34 @@ class MainMap:
                 for i in range(len(self.neon_bot_right)):
                     if self.touching_bot_right[i]:
                         self.screen.blit(self.neon_bot_right[i].image, self.neon_bot_right[i].rect)
+
+    def click(self):
+        pos = pg.mouse.get_pos()
+
+        self.all_pos_top_right = [(self.pos[0] - i.rect.x, self.pos[1] - i.rect.y) for i in self.neon_top_right]
+        self.touching_top_right = [
+            self.neon_top_right[i].rect.collidepoint(*self.pos) and self.neon_top_right[i].mask.get_at(
+                self.all_pos_top_right[i]) for i in range(len(self.neon_top_right))]
+
+        self.all_pos_top_left = [(self.pos[0] - i.rect.x, self.pos[1] - i.rect.y) for i in self.neon_top_left]
+        self.touching_top_left = [
+            self.neon_top_left[i].rect.collidepoint(*self.pos) and self.neon_top_left[i].mask.get_at(
+                self.all_pos_top_left[i]) for i in range(len(self.neon_top_left))]
+
+        self.all_pos_bot_left = [(self.pos[0] - i.rect.x, self.pos[1] - i.rect.y) for i in self.neon_bot_left]
+        self.touching_bot_left = [
+            self.neon_bot_left[i].rect.collidepoint(*self.pos) and self.neon_bot_left[i].mask.get_at(
+                self.all_pos_bot_left[i]) for i in range(len(self.neon_bot_left))]
+
+        self.all_pos_bot_right = [(self.pos[0] - i.rect.x, self.pos[1] - i.rect.y) for i in self.neon_bot_right]
+        self.touching_bot_right = [
+            self.neon_bot_right[i].rect.collidepoint(*self.pos) and self.neon_bot_right[i].mask.get_at(
+                self.all_pos_bot_right[i]) for i in range(len(self.neon_bot_right))]
+
+        self.condition_france = self.touching_top_left[6]
+        self.condition_alaska = self.touching_top_left[0]
+        self.condition_canada = self.touching_top_left[2]
+        print(self.condition_france)
 
 
 class USA:

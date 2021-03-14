@@ -69,7 +69,10 @@ class WarGame:
             self.production_france["Housings"][1] -= 1
             if self.production_france["Housings"][1] == 0:
                 self.main_display.france.level_workers_housing += 1
-                self.production_france["Housings"][0] = False
+                if self.production_france["Housings"][1] < 5:
+                    self.production_france["Housings"][0] = False
+                else:
+                    self.production_france["Housings"][0] = True
 
         if self.production_france["Mines"][0]:
             self.production_france["Mines"][1] -= 1
@@ -128,42 +131,48 @@ class WarGame:
                     self.main_display.france.level_workers_housing + 1) and not self.production_france["Housings"][0]:
                 self.production_france["Housings"][0] = True
                 self.production_france["Housings"][1] = (
-                                                                    self.main_display.france.level_workers_housing + 1) * 10 // self.player_work_force
+                                                                    self.main_display.france.level_workers_housing + 1) * 10 // self.player_work_force + 1
                 self.player_wood -= 50 * (self.main_display.france.level_workers_housing + 1)
                 self.main_display.france.update_buttons_upgrade(self.production_france)
                 self.main_display.france.update_upgrading(self.production_france)
 
-            if self.main_display.france.buttons_upgrade_rect[1].collidepoint(event.pos) and self.player_wood > 50 * (
-                    self.main_display.france.level_mines + 1) and self.player_gold > 10 * (
+            if self.main_display.france.buttons_upgrade_rect[1].collidepoint(event.pos) and self.player_wood >= 50 * (
+                    self.main_display.france.level_mines + 1) and self.player_gold >= 10 * (
                     self.main_display.france.level_mines + 1) and not self.production_france["Mines"][0]:
                 self.production_france["Mines"][0] = True
-                self.production_france["Mines"][1] = (
-                                                                 self.main_display.france.level_mines + 1) * 50 // self.player_work_force
+                self.production_france["Mines"][1] = (self.main_display.france.level_mines + 1) * 50 // self.player_work_force + 1
                 self.player_wood -= 50 * (self.main_display.france.level_mines + 1)
                 self.player_gold -= 10 * (self.main_display.france.level_mines + 1)
                 self.main_display.france.update_buttons_upgrade(self.production_france)
                 self.main_display.france.update_upgrading(self.production_france)
 
-            if self.main_display.france.buttons_upgrade_rect[2].collidepoint(event.pos) and self.player_wood > 25 * (
+            if self.main_display.france.buttons_upgrade_rect[2].collidepoint(event.pos) and self.player_wood >= 25 * (
                     self.main_display.france.level_fields + 1) and self.player_gold > 5 * (
                     self.main_display.france.level_fields + 1) and not self.production_france["Fields"][0]:
                 self.production_france["Fields"][0] = True
-                self.production_france["Fields"][1] = (
-                                                                  self.main_display.france.level_fields + 1) * 25 // self.player_work_force
+                self.production_france["Fields"][1] = (self.main_display.france.level_fields + 1) * 25 // self.player_work_force + 1
                 self.player_wood -= 25 * (self.main_display.france.level_fields + 1)
                 self.player_gold -= 5 * (self.main_display.france.level_fields + 1)
                 self.main_display.france.update_buttons_upgrade(self.production_france)
                 self.main_display.france.update_upgrading(self.production_france)
 
-            if self.main_display.france.buttons_upgrade_rect[3].collidepoint(event.pos) and self.player_food > 100 * (
+            if self.main_display.france.buttons_upgrade_rect[3].collidepoint(event.pos) and self.player_food >= 100 * (
                     self.main_display.france.level_sawmill + 1) and not self.production_france["Sawmill"][0]:
                 self.production_france["Sawmill"][0] = True
                 self.production_france["Sawmill"][1] = (
-                                                                   self.main_display.france.level_sawmill + 1) * 15 // self.player_work_force
-                self.player_wood -= 25 * (self.main_display.france.level_sawmill + 1)
-                self.player_gold -= 5 * (self.main_display.france.level_sawmill + 1)
+                                                                   self.main_display.france.level_sawmill + 1) * 15 // self.player_work_force + 1
+                self.player_food -= 100 * (self.main_display.france.level_sawmill + 1)
                 self.main_display.france.update_buttons_upgrade(self.production_france)
                 self.main_display.france.update_upgrading(self.production_france)
+
+        self.main_display.update_resources([self.player_gold, self.player_iron,
+                                            self.player_food, self.player_work_force,
+                                            self.player_wood, self.player_land])
+        self.main_display.france.update_buttons_upgrade(self.production_france)
+        self.main_display.france.update_upgrading(self.production_france)
+        self.main_display.resources_bar.update(self.player_gold, self.player_iron,
+                                               self.player_food, self.player_work_force,
+                                               self.player_wood, self.player_land)
 
     def main_loop(self):
 
@@ -183,11 +192,15 @@ class WarGame:
 
                     if event.type == pg.MOUSEBUTTONDOWN:
                         if event.button == 1:
+
+                            if not self.main_display.watching_country:
+                                self.main_display.map_display.click()
+
                             if self.main_display.turn_options.button_next_turn_rect.collidepoint(event.pos) and self.turn_able:
                                 self.change_turn()
                                 self.delay_changing_turn = self.current_time
 
-                            if self.main_display.france_rect.collidepoint(event.pos) and not self.main_display.watching_country and self.main_display.france.owner == "Player":
+                            if self.main_display.map_display.condition_france and not self.main_display.watching_country and self.main_display.france.owner == "Player":
                                 self.main_display.watching_country = True
                                 self.main_display.country_watched = "france"
 

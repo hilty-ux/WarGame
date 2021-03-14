@@ -49,13 +49,12 @@ class MainDisplay:
 
         self.screen.fill((255, 255, 255))
 
-        """if self.watching_country:
+        if self.watching_country:
             if self.country_watched == "france":
                 self.france.update(prod_w_eu)
         else:
             self.map_display.update()
-            self.screen.blit(self.france_surf, self.france_rect)"""
-        self.map_display.update()
+
         self.turn_options.update(current_turn)
 
         self.resources_bar.update(self.player_gold, self.player_iron,
