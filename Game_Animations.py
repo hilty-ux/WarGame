@@ -14,7 +14,7 @@ class SimpleExplosion(pg.sprite.Sprite):
                        pg.image.load("ressources/Assets/Frame Explosion/tile005.png"),
                        pg.image.load("ressources/Assets/Frame Explosion/tile006.png"),
                        pg.image.load("ressources/Assets/Frame Explosion/tile007.png")]
-        self.images = [pg.transform.scale(i, (50, 50)) for i in self.images]
+        self.images = [pg.transform.scale(i, (150, 150)) for i in self.images]
         self.image = self.images[0]
         self.rect = self.images[0].get_rect()
         self.index_anim = 0

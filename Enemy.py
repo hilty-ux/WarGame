@@ -36,8 +36,8 @@ class SniperEnemy(pg.sprite.Sprite):
 
         self.draw_life_bar()
 
-        if life:
-            self.life -= 25
+        if life is not None:
+            self.life -= life
             return
 
         if self.life <= 0:
