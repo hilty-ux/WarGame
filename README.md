@@ -1,11 +1,19 @@
 # Project-W
 
+
+
 Main developper : Théophile Aumont
+
 Artistic director : Baptiste Montagne, Théophile Aumont
+
 Main graphist : Baptiste Montagne
 
+
+
 Developement language : python, json
+
 Graphical engine : pygame
+
 Python module used : pygame, sys, screeninfo, math, random
 
 # Game concept
