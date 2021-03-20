@@ -176,7 +176,6 @@ class USA:
         self.rect.x, self.rect.y = 0, 0
         self.mask = pg.mask.from_surface(self.image)
 
-
 class Canada:
 
     def __init__(self, width, height):
