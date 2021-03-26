@@ -126,7 +126,7 @@ class Explosion2(pg.sprite.Sprite):
                        pg.image.load("ressources/Assets/New Explosions/Explosion2/0019.png"),
                        pg.image.load("ressources/Assets/New Explosions/Explosion2/0020.png")]
 
-        self.images = [pg.transform.scale(i, (75, 75)) for i in self.images]
+        self.images = [pg.transform.scale(i, (150, 150)) for i in self.images]
         self.image = self.images[0]
         self.rect = self.images[0].get_rect()
         self.index_anim = 0
@@ -138,7 +138,7 @@ class Explosion2(pg.sprite.Sprite):
     def update(self):
         self.current_time = pg.time.get_ticks()
 
-        if self.current_time - self.delay > 75:
+        if self.current_time - self.delay > 50:
             self.delay = self.current_time
             if self.index_anim < len(self.images)-1:
                 self.index_anim += 1

@@ -52,20 +52,36 @@ class AttackDisplay:
         self.main_display()
 
     def cancel(self):
+        """Function to cancel current movement of the selected unity(ies)"""
+
         for i in self.units_group1:
-            i.moving = False
-            i.movement = [0, 0]
+            if i.clicked:
+                i.moving = False
+                i.movement = [0, 0]
+                i.target = None
+                i.last_target = None
 
     def fill_groups(self):
+
+        """Function to complete the selection of the player's troops. This fill a group with the player's chosen
+        troops (by the limit of his effective)"""
 
         self.new_troops1 = self.preparing_dp.new_troops_effective
 
         for i in range(self.new_troops1["snipers"][0]):
-            self.units_group1.append(u.Sniper(self.screen, self.new_troops1["snipers"][1]))
+            self.units_group1.append(u.Sniper(self.screen, self.new_troops1["snipers"][1], self.width, self.height))
             self.units_group1_coo.append([randint(self.width // 4, self.width // 2), randint(self.height // 2, self.height - 25)])
 
         for i in range(self.new_troops1["artillery"][0]):
             self.units_group1.append(u.Artillery(self.screen, self.new_troops1["artillery"][1], self.width, self.height))
+            self.units_group1_coo.append([randint(self.width // 4, self.width // 3), randint(self.height // 2 + 300, self.height - 25)])
+
+        for i in range(self.new_troops1["infantry"][0]):
+            self.units_group1.append(u.Infantry(self.screen, self.new_troops1["infantry"][1], self.width, self.height))
+            self.units_group1_coo.append([randint(self.width // 4, self.width // 3), randint(self.height // 2 + 300, self.height - 25)])
+
+        for i in range(self.new_troops1["cavalry"][0]):
+            self.units_group1.append(u.Cavalry(self.screen, self.new_troops1["cavalry"][1], self.width, self.height))
             self.units_group1_coo.append([randint(self.width // 4, self.width // 3), randint(self.height // 2 + 300, self.height - 25)])
 
         for i in range(7):
@@ -102,6 +118,12 @@ class AttackDisplay:
                                 self.preparing = False
                                 self.attacking = True
                                 self.fill_groups()
+                                for i in self.units_group1:
+                                    i.clicked = False
+                                    try:
+                                        i.selecting_fire = False
+                                    except Exception as e:
+                                        print(e)
 
                 self.screen.fill((0, 0, 0))
                 self.preparing_dp()
