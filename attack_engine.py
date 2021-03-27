@@ -3,6 +3,7 @@ import sys
 from random import randint
 
 import units as u
+import FakeUnits as Fu
 import Players as Pls
 import Game_Animations as Ga
 import Background_manager as Bm
@@ -17,6 +18,7 @@ class AttackDisplay:
         self.running_attack = True
         self.preparing = True
         self.attacking = False
+        self.placing_troops = False
 
         self.troops_p1 = self.player1.troops
         self.troops_p2 = self.player2.troops
@@ -48,6 +50,13 @@ class AttackDisplay:
 
         self.clock = pg.time.Clock()
 
+        self.showing_infantry_group = pg.sprite.Group()
+        self.showing_sniper_group = pg.sprite.Group()
+        self.showing_artillery_group = pg.sprite.Group()
+        self.showing_cavalry_group = pg.sprite.Group()
+
+        self.placing_troops_dp = DisplayPlacingTroops(self.screen, self.width, self.height, self.new_troops1)
+
     def __call__(self):
         self.main_display()
 
@@ -61,28 +70,42 @@ class AttackDisplay:
                 i.target = None
                 i.last_target = None
 
-    def fill_groups(self):
+    def fill_groups(self, all_in_group):
 
         """Function to complete the selection of the player's troops. This fill a group with the player's chosen
         troops (by the limit of his effective)"""
 
         self.new_troops1 = self.preparing_dp.new_troops_effective
 
-        for i in range(self.new_troops1["snipers"][0]):
-            self.units_group1.append(u.Sniper(self.screen, self.new_troops1["snipers"][1], self.width, self.height))
-            self.units_group1_coo.append([randint(self.width // 4, self.width // 2), randint(self.height // 2, self.height - 25)])
+        self.showing_infantry_group = self.placing_troops_dp.return_inf_grp()
+        self.showing_cavalry_group = self.placing_troops_dp.return_cav_grp()
+        self.showing_artillery_group = self.placing_troops_dp.return_art_grp()
+        self.showing_sniper_group = self.placing_troops_dp.return_snp_grp()
 
-        for i in range(self.new_troops1["artillery"][0]):
-            self.units_group1.append(u.Artillery(self.screen, self.new_troops1["artillery"][1], self.width, self.height))
-            self.units_group1_coo.append([randint(self.width // 4, self.width // 3), randint(self.height // 2 + 300, self.height - 25)])
+        for sprite in all_in_group:
+            if sprite == "infantry":
+                self.units_group1.append(
+                    u.Infantry(self.screen, self.new_troops1["infantry"][1], self.width, self.height))
+            elif sprite == "cavalry":
+                self.units_group1.append(
+                    u.Cavalry(self.screen, self.new_troops1["cavalry"][1], self.width, self.height))
+            elif sprite == "artillery":
+                self.units_group1.append(
+                    u.Artillery(self.screen, self.new_troops1["artillery"][1], self.width, self.height))
+            elif sprite == "sniper":
+                self.units_group1.append(u.Sniper(self.screen, self.new_troops1["snipers"][1], self.width, self.height))
 
-        for i in range(self.new_troops1["infantry"][0]):
-            self.units_group1.append(u.Infantry(self.screen, self.new_troops1["infantry"][1], self.width, self.height))
-            self.units_group1_coo.append([randint(self.width // 4, self.width // 3), randint(self.height // 2 + 300, self.height - 25)])
+        for sprite in self.showing_infantry_group:
+            self.units_group1_coo.append([sprite.rect.centerx, sprite.rect.centery])
 
-        for i in range(self.new_troops1["cavalry"][0]):
-            self.units_group1.append(u.Cavalry(self.screen, self.new_troops1["cavalry"][1], self.width, self.height))
-            self.units_group1_coo.append([randint(self.width // 4, self.width // 3), randint(self.height // 2 + 300, self.height - 25)])
+        for sprite in self.showing_cavalry_group:
+            self.units_group1_coo.append([sprite.rect.centerx, sprite.rect.centery])
+
+        for sprite in self.showing_artillery_group:
+            self.units_group1_coo.append([sprite.rect.centerx, sprite.rect.centery])
+
+        for sprite in self.showing_sniper_group:
+            self.units_group1_coo.append([sprite.rect.centerx, sprite.rect.centery])
 
         for i in range(7):
             self.enemy_group.add(En.SniperEnemy(self.screen, 2, [randint(self.width // 2, self.width // 2 + self.width // 4),
@@ -116,17 +139,42 @@ class AttackDisplay:
                         if event.button == 1:
                             if self.preparing_dp.click(event.pos) == "switch":
                                 self.preparing = False
-                                self.attacking = True
-                                self.fill_groups()
-                                for i in self.units_group1:
-                                    i.clicked = False
-                                    try:
-                                        i.selecting_fire = False
-                                    except Exception as e:
-                                        print(e)
+                                self.placing_troops = True
+                                self.placing_troops_dp = DisplayPlacingTroops(self.screen, self.width, self.height,
+                                                                              self.new_troops1)
 
                 self.screen.fill((0, 0, 0))
                 self.preparing_dp()
+
+                self.clock.tick(60)
+                pg.display.flip()
+
+            while self.placing_troops:
+
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        self.placing_troops = False
+                        self.running_attack = False
+                    if event.type == pg.KEYDOWN:
+                        if event.key == pg.K_ESCAPE:
+                            self.placing_troops = False
+                            self.running_attack = False
+                    if event.type == pg.MOUSEBUTTONDOWN:
+                        if event.button == 1:
+                            click = self.placing_troops_dp.click()
+                            if click is not None:
+                                self.fill_groups(click)
+                                for sprite in self.units_group1:
+                                    sprite.clicked = False
+                                    sprite.selecting_fire = False
+                                self.placing_troops = False
+                                self.attacking = True
+
+                        if event.button == 3:
+                            self.placing_troops_dp.right_click()
+
+                self.placing_troops_dp(self.showing_infantry_group, self.showing_artillery_group,
+                                       self.showing_cavalry_group, self.showing_sniper_group)
 
                 self.clock.tick(60)
                 pg.display.flip()
@@ -470,6 +518,271 @@ class DisplayAttacking:
 
         if self.clicking:
             self.draw_selection()
+
+
+class DisplayPlacingTroops:
+
+    def __init__(self, screen, width, height, effective):
+        self.screen, self.width, self.height = screen, width, height
+
+        self.background_moon = Bm.Moon(self.screen, self.width, self.height)
+        self.grp_inf = pg.sprite.Group()
+        self.grp_cav = pg.sprite.Group()
+        self.grp_snp = pg.sprite.Group()
+        self.grp_art = pg.sprite.Group()
+
+        self.main_tab = pg.Surface((self.width // 2, self.height // 5))
+        self.main_tab.fill((255, 255, 0))
+        self.main_tab_rect = self.main_tab.get_rect(centerx=self.width//2, top=self.height-self.height//5)
+
+        self.surf_pos = pg.Surface((self.width // 5, self.height // 1.5))
+        self.surf_pos.fill((0, 150, 0))
+        self.surf_pos.set_alpha(100)
+        self.surf_pos_rect = self.surf_pos.get_rect(left=0, centery=self.height//2)
+
+        self.n_inf = effective["infantry"][0]
+        self.n_cav = effective["cavalry"][0]
+        self.n_art = effective["artillery"][0]
+        self.n_snp = effective["snipers"][0]
+
+        self.surf_units = [pg.Surface((self.width // 8 - 50, self.height // 6)),
+                           pg.Surface((self.width // 8 - 50, self.height // 6)),
+                           pg.Surface((self.width // 8 - 50, self.height // 6)),
+                           pg.Surface((self.width // 8 - 50, self.height // 6))]
+        self.surf_units_rect = [self.surf_units[i].get_rect(
+            left=self.width//4+(self.width // 8 - 50)*i, y=self.height-self.height//6) for i in range(4)]
+        for i in self.surf_units:
+            i.fill((0, 255, 0))
+
+        self.selection = None
+        self.selected_one = None
+        self.possible_selection = ["infantry", "cavalry", "artillery", "sniper"]
+
+        self.add_inf = lambda x, y: self.grp_inf.add(Fu.FakeInfantry((x, y), self.width, self.height))
+        self.count_inf = 0
+        self.add_cav = lambda x, y: self.grp_cav.add(Fu.FakeCavalry((x, y), self.width, self.height))
+        self.count_cav = 0
+        self.add_art = lambda x, y: self.grp_art.add(Fu.FakeArtillery((x, y), self.width, self.height))
+        self.count_art = 0
+        self.add_snp = lambda x, y: self.grp_snp.add(Fu.FakeSniper((x, y), self.width, self.height))
+        self.count_snp = 0
+
+        self.font_title = pg.font.Font("ressources/Fonts/f014015d.woff", 100)
+        self.confirm_button = self.font_title.render("confirm", True, (0, 0, 0))
+        self.confirm_button_rect = self.confirm_button.get_rect(center=(self.width//2, self.height // 2))
+
+    def __call__(self, grp_inf, grp_art, grp_cav, grp_snp):
+        self.grp_inf = grp_inf
+        self.grp_art = grp_art
+        self.grp_snp = grp_snp
+        self.grp_cav = grp_cav
+
+        self.main_display()
+
+    def right_click(self):
+        self.selection = None
+        self.selected_one = None
+        for inf in self.grp_inf:
+            inf.clicked = False
+        for cav in self.grp_cav:
+            cav.clicked = False
+        for art in self.grp_art:
+            art.clicked = False
+        for snp in self.grp_snp:
+            snp.clicked = False
+
+    def click(self):
+        pos = pg.mouse.get_pos()
+
+        current_all_in_group = []
+        for sprite in self.grp_inf:
+            current_all_in_group.append(sprite.name)
+        for sprite in self.grp_cav:
+            current_all_in_group.append(sprite.name)
+        for sprite in self.grp_art:
+            current_all_in_group.append(sprite.name)
+        for sprite in self.grp_snp:
+            current_all_in_group.append(sprite.name)
+
+        if self.confirm_button_rect.collidepoint(pos):
+            return current_all_in_group
+
+        if self.selection is not None:
+            if self.surf_pos_rect.collidepoint(pos):
+                if self.selection == "infantry":
+                    if self.count_inf < self.n_inf:
+                        self.add_inf(pos[0], pos[1])
+                        self.count_inf += 1
+                    else:
+                        self.selection = None
+                elif self.selection == "cavalry":
+                    if self.count_cav < self.n_cav:
+                        self.add_cav(pos[0], pos[1])
+                        self.count_cav += 1
+                    else:
+                        self.selection = None
+                elif self.selection == "artillery":
+                    if self.count_art < self.n_art:
+                        self.add_art(pos[0], pos[1])
+                        self.count_art += 1
+                    else:
+                        self.selection = None
+                elif self.selection == "sniper":
+                    if self.count_snp < self.n_snp:
+                        self.add_snp(pos[0], pos[1])
+                        self.count_snp += 1
+                    else:
+                        self.selection = None
+        elif self.selected_one == "inf":
+            if self.surf_pos_rect.collidepoint(pos):
+                self.grp_inf.update(False, True, False)
+                self.selected_one = None
+                for sprites in self.grp_inf:
+                    sprites.clicked = False
+        elif self.selected_one == "cav":
+            if self.surf_pos_rect.collidepoint(pos):
+                self.grp_cav.update(False, True, False)
+                self.selected_one = None
+                for sprites in self.grp_cav:
+                    sprites.clicked = False
+        elif self.selected_one == "art":
+            if self.surf_pos_rect.collidepoint(pos):
+                self.grp_art.update(False, True, False)
+                self.selected_one = None
+                for sprites in self.grp_art:
+                    sprites.clicked = False
+        elif self.selected_one == "snp":
+            if self.surf_pos_rect.collidepoint(pos):
+                self.grp_snp.update(False, True, False)
+                self.selected_one = None
+                for sprites in self.grp_snp:
+                    sprites.clicked = False
+        else:
+            if self.selected_one is None:
+                for inf in self.grp_inf:
+                    if inf.update(True, False, False):
+                        self.selected_one = "inf"
+                        return
+                for cav in self.grp_cav:
+                    if cav.update(True, False, False):
+                        self.selected_one = "cav"
+                        return
+                for art in self.grp_art:
+                    if art.update(True, False, False):
+                        self.selected_one = "art"
+                        return
+                for snp in self.grp_snp:
+                    if snp.update(True, False, False):
+                        self.selected_one = "snp"
+                        return
+
+        for i in range(4):
+            if self.surf_units_rect[i].collidepoint(pos):
+                self.selection = self.possible_selection[i]
+                self.surf_units[i].fill((0, 0, 255))
+            else:
+                self.surf_units[i].fill((0, 255, 0))
+
+    def draw_selection_preview(self):
+        pos = pg.mouse.get_pos()
+
+        if self.selection is not None:
+            if self.selection == "infantry":
+                if self.count_inf < self.n_inf:
+                    width = self.width * (75/self.width)
+                    height = self.height * (75/self.height)
+                    pg.draw.rect(self.screen, (0, 255, 0, 15), [pos[0]-width//2, pos[1]-height//2,
+                                                                width, height])
+            elif self.selection == "cavalry":
+                if self.count_cav < self.n_cav:
+                    width = self.width * (50/self.width)
+                    height = self.height * (50/self.height)
+                    pg.draw.rect(self.screen, (0, 255, 0, 15), [pos[0]-width//2, pos[1]-height//2,
+                                                                width, height])
+            elif self.selection == "artillery":
+                if self.count_art < self.n_art:
+                    width = self.width * (50/self.width)
+                    height = self.height * (25/self.height)
+                    pg.draw.rect(self.screen, (0, 255, 0, 15), [pos[0]-width//2, pos[1]-height//2,
+                                                                width, height])
+            elif self.selection == "sniper":
+                if self.count_snp < self.n_snp:
+                    width = self.width * (25/self.width)
+                    height = self.height * (25/self.height)
+                    pg.draw.rect(self.screen, (0, 255, 0, 15), [pos[0]-width//2, pos[1]-height//2,
+                                                                width, height])
+
+        if self.selected_one is not None:
+            if self.selected_one == "inf":
+                width = self.width * (75 / self.width)
+                height = self.height * (75 / self.height)
+                pg.draw.rect(self.screen, (0, 50, 100, 15), [pos[0] - width // 2, pos[1] - height // 2,
+                                                             width, height])
+            elif self.selected_one == "cav":
+                width = self.width * (50 / self.width)
+                height = self.height * (50 / self.height)
+                pg.draw.rect(self.screen, (0, 50, 100, 15), [pos[0] - width // 2, pos[1] - height // 2,
+                                                             width, height])
+            elif self.selected_one == "art":
+                width = self.width * (50 / self.width)
+                height = self.height * (25 / self.height)
+                pg.draw.rect(self.screen, (0, 50, 100, 15), [pos[0] - width // 2, pos[1] - height // 2,
+                                                             width, height])
+            elif self.selected_one == "snp":
+                width = self.width * (25 / self.width)
+                height = self.height * (25 / self.height)
+                pg.draw.rect(self.screen, (0, 50, 100, 15), [pos[0] - width // 2, pos[1] - height // 2,
+                                                             width, height])
+
+    def return_inf_grp(self):
+        return self.grp_inf
+
+    def return_cav_grp(self):
+        return self.grp_cav
+
+    def return_art_grp(self):
+        return self.grp_art
+
+    def return_snp_grp(self):
+        return self.grp_snp
+
+    def main_display(self):
+
+        pos = pg.mouse.get_pos()
+
+        self.background_moon()
+        self.grp_cav.draw(self.screen)
+        self.grp_inf.draw(self.screen)
+        self.grp_art.draw(self.screen)
+        self.grp_snp.draw(self.screen)
+
+        self.draw_selection_preview()
+        self.screen.blit(self.main_tab, self.main_tab_rect)
+        self.screen.blit(self.surf_pos, self.surf_pos_rect)
+        for i in range(4):
+            self.screen.blit(self.surf_units[i], self.surf_units_rect[i])
+
+        self.grp_inf.update(False, False, False)
+
+        if self.confirm_button_rect.collidepoint(pos):
+            pg.draw.rect(self.screen, (0, 255, 0), self.confirm_button_rect)
+        else:
+            pg.draw.rect(self.screen, (255, 255, 255), self.confirm_button_rect)
+        self.screen.blit(self.confirm_button, self.confirm_button_rect)
+
+
+def find_first(grp):
+    """Returns the first sprite of a given group"""
+    for i in grp:
+        return i
+
+
+def find_last(grp):
+    """Returns the last sprite of a given group"""
+    cur = None
+    for i in grp:
+        cur = i
+    return cur
 
 
 if __name__ == '__main__':
